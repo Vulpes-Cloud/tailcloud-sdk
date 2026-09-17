@@ -102,6 +102,7 @@ class TailModel:
 
         return decorator
 
+
     def __view_result(self, result):
         result = serialize(result)
         print(f"result={json.dumps(result, ensure_ascii=False)}")
