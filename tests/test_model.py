@@ -56,10 +56,17 @@ class ModelTests(unittest.TestCase):
 
     def test_malformed_requests_always_produce_an_error_response(self):
         for args in (
-            ("command",), ("command", "missing"), ("unknown",),
-            ("install",), ("describe", "extra"), ("install", "{}", "extra"),
-            ("command", "test", "{"), ("install", "[]"), ("install", "null"),
-            ("install", "1"), ("install", '"text"'),
+            ("command",),
+            ("command", "missing"),
+            ("unknown",),
+            ("install",),
+            ("describe", "extra"),
+            ("install", "{}", "extra"),
+            ("command", "test", "{"),
+            ("install", "[]"),
+            ("install", "null"),
+            ("install", "1"),
+            ("install", '"text"'),
         ):
             with self.subTest(args=args):
                 payload, _ = self.cli(*args)
@@ -67,15 +74,30 @@ class ModelTests(unittest.TestCase):
 
     def test_validation_prevents_execution_and_applies_defaults(self):
         handler = Mock(return_value=Result("done"))
-        self.model.command(Command("test", "Test", fields=[
-            Field("port", "Port", type="int", required=True, minimum=1, maximum=65535),
-            Field("enabled", "Enabled", type="bool", default=False),
-            Field("mode", "Mode", default="safe", choices=["safe", "fast"]),
-        ]))(handler)
-        for args in ({}, {"port": True}, {"port": "80"}, {"port": 0},
-                     {"port": 65536}, {"port": 80, "unknown": 1},
-                     {"port": 80, "enabled": "false"}, {"port": 80, "mode": "bad"},
-                     {"port": None}, [], {1: "value"}):
+        self.model.command(
+            Command(
+                "test",
+                "Test",
+                fields=[
+                    Field("port", "Port", type="int", required=True, minimum=1, maximum=65535),
+                    Field("enabled", "Enabled", type="bool", default=False),
+                    Field("mode", "Mode", default="safe", choices=["safe", "fast"]),
+                ],
+            )
+        )(handler)
+        for args in (
+            {},
+            {"port": True},
+            {"port": "80"},
+            {"port": 0},
+            {"port": 65536},
+            {"port": 80, "unknown": 1},
+            {"port": 80, "enabled": "false"},
+            {"port": 80, "mode": "bad"},
+            {"port": None},
+            [],
+            {1: "value"},
+        ):
             with self.subTest(args=args):
                 result = self.model.execute("command", args, command_id="test")
                 self.assertEqual(result.status, "ERROR")
@@ -122,8 +144,12 @@ class ModelTests(unittest.TestCase):
         self.assertIn("RuntimeError: secret-token", payload["result"]["description"])
 
     def test_invalid_return_values_are_reported(self):
-        for value in (42, {}, Result("bad", data={"value": object()}),
-                      Result("bad", data={"value": float("nan")})):
+        for value in (
+            42,
+            {},
+            Result("bad", data={"value": object()}),
+            Result("bad", data={"value": float("nan")}),
+        ):
             with self.subTest(value=value):
                 model = TailModel()
                 model.install(Command("install", "Install"))(Mock(return_value=value))
@@ -170,10 +196,15 @@ class ModelTests(unittest.TestCase):
 class MetadataTests(unittest.TestCase):
     def test_field_definition_validation(self):
         for kwargs in (
-            {"id": "invalid-name"}, {"id": "class"}, {"type": "float"},
-            {"type": "int", "default": True}, {"type": "int", "minimum": 10, "maximum": 1},
-            {"minimum": 0}, {"type": "int", "minimum": False},
-            {"choices": ["one"], "default": "two"}, {"required": True, "default": ""},
+            {"id": "invalid-name"},
+            {"id": "class"},
+            {"type": "float"},
+            {"type": "int", "default": True},
+            {"type": "int", "minimum": 10, "maximum": 1},
+            {"minimum": 0},
+            {"type": "int", "minimum": False},
+            {"choices": ["one"], "default": "two"},
+            {"required": True, "default": ""},
         ):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 Field(**{"id": "value", "name": "Value", **kwargs})
@@ -190,16 +221,23 @@ class MetadataTests(unittest.TestCase):
         class State(Enum):
             OK = "OK"
 
-        self.assertEqual(serialize({"state": State.OK, "items": (1, 2)}),
-                         {"state": "OK", "items": [1, 2]})
+        self.assertEqual(
+            serialize({"state": State.OK, "items": (1, 2)}), {"state": "OK", "items": [1, 2]}
+        )
         for value in (object(), {1: "bad"}, {1, 2}, Result):
             with self.subTest(value=value), self.assertRaises(TypeError):
                 serialize(value)
 
     def test_library_import_does_not_configure_root_logging(self):
         process = subprocess.run(
-            [sys.executable, "-c", "import logging; before = logging.getLogger().handlers[:]; "
-             "import tailcloud_sdk; assert logging.getLogger().handlers == before"],
-            capture_output=True, text=True, check=False,
+            [
+                sys.executable,
+                "-c",
+                "import logging; before = logging.getLogger().handlers[:]; "
+                "import tailcloud_sdk; assert logging.getLogger().handlers == before",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         self.assertEqual(process.returncode, 0, process.stderr)

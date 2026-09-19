@@ -20,11 +20,13 @@ def completed(title: str) -> Result:
     return Result(title)
 
 
-@model.install(Command(
-    id="install",
-    title="Установить Nginx",
-    fields=[Field("refresh", "Обновить список пакетов", type="bool", default=True)],
-))
+@model.install(
+    Command(
+        id="install",
+        title="Установить Nginx",
+        fields=[Field("refresh", "Обновить список пакетов", type="bool", default=True)],
+    )
+)
 def install(refresh: bool) -> Result:
     manager = packages()
     if refresh:

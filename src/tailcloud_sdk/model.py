@@ -142,9 +142,7 @@ class TailModel:
             return Result(
                 "Ошибка выполнения",
                 description=(
-                    traceback.format_exc()
-                    if self.debug
-                    else "Не удалось выполнить операцию"
+                    traceback.format_exc() if self.debug else "Не удалось выполнить операцию"
                 ),
                 status="ERROR",
             )
@@ -180,8 +178,7 @@ class TailModel:
                     result = self.execute(args[0], arguments)
             else:
                 raise ValidationError(
-                    "Usage: describe | command <id> [JSON] | "
-                    "install/update/uninstall/status [JSON]"
+                    "Usage: describe | command <id> [JSON] | install/update/uninstall/status [JSON]"
                 )
         except ValidationError as exc:
             result = Result("Некорректный запрос", description=str(exc), status="ERROR")

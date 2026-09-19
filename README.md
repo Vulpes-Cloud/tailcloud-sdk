@@ -25,11 +25,13 @@ from tailcloud_sdk import Command, Field, Result, TailModel
 model = TailModel()
 
 
-@model.command(Command(
-    id="greet",
-    title="Приветствие",
-    fields=[Field("name", "Имя", required=True)],
-))
+@model.command(
+    Command(
+        id="greet",
+        title="Приветствие",
+        fields=[Field("name", "Имя", required=True)],
+    )
+)
 def greet(name: str) -> Result:
     return Result("Готово", description=f"Привет, {name}!")
 

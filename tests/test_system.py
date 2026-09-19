@@ -67,12 +67,27 @@ class RunnerTests(unittest.TestCase):
 class PackageTests(unittest.TestCase):
     def test_package_operations_for_all_backends(self):
         for backend, refresh, install, upgrade, remove in (
-            ("apt-get", ["-y", "update"], ["-y", "install", "nginx"],
-             ["-y", "install", "--only-upgrade", "nginx"], ["-y", "remove", "nginx"]),
-            ("dnf", ["-y", "makecache"], ["-y", "install", "nginx"],
-             ["-y", "upgrade", "nginx"], ["-y", "remove", "nginx"]),
-            ("yum", ["-y", "makecache"], ["-y", "install", "nginx"],
-             ["-y", "upgrade", "nginx"], ["-y", "remove", "nginx"]),
+            (
+                "apt-get",
+                ["-y", "update"],
+                ["-y", "install", "nginx"],
+                ["-y", "install", "--only-upgrade", "nginx"],
+                ["-y", "remove", "nginx"],
+            ),
+            (
+                "dnf",
+                ["-y", "makecache"],
+                ["-y", "install", "nginx"],
+                ["-y", "upgrade", "nginx"],
+                ["-y", "remove", "nginx"],
+            ),
+            (
+                "yum",
+                ["-y", "makecache"],
+                ["-y", "install", "nginx"],
+                ["-y", "upgrade", "nginx"],
+                ["-y", "remove", "nginx"],
+            ),
             ("apk", ["update"], ["add", "nginx"], ["upgrade", "nginx"], ["del", "nginx"]),
         ):
             with self.subTest(backend=backend):
@@ -107,10 +122,12 @@ class ServiceTests(unittest.TestCase):
     def test_service_commands(self):
         service = SystemdService(Runner(dry_run=True), "nginx.service")
         for action in ("start", "stop", "restart", "reload", "enable", "disable"):
-            self.assertEqual(getattr(service, action)().args,
-                             ("systemctl", action, "--", "nginx.service"))
-        self.assertEqual(service.enable(now=True).args,
-                         ("systemctl", "enable", "--now", "--", "nginx.service"))
+            self.assertEqual(
+                getattr(service, action)().args, ("systemctl", action, "--", "nginx.service")
+            )
+        self.assertEqual(
+            service.enable(now=True).args, ("systemctl", "enable", "--now", "--", "nginx.service")
+        )
         self.assertIn("--no-pager", service.status().args)
         self.assertIsNone(service.is_active())
 

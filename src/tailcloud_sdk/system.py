@@ -93,10 +93,10 @@ class SystemdService:
         return self._run("reload")
 
     def enable(self, *, now: bool = False) -> CommandResult:
-        return self._run("enable", *(('--now',) if now else ()))
+        return self._run("enable", *(("--now",) if now else ()))
 
     def disable(self, *, now: bool = False) -> CommandResult:
-        return self._run("disable", *(('--now',) if now else ()))
+        return self._run("disable", *(("--now",) if now else ()))
 
     def status(self) -> CommandResult:
         return self._run("status", "--no-pager", "--full", check=False)
