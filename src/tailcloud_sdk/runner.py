@@ -1,11 +1,11 @@
 """Small, synchronous subprocess runner with predictable failure behavior."""
 
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 import math
 import os
 from pathlib import Path
 import subprocess
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 
 from .errors import ExecutionError
 
@@ -38,7 +38,12 @@ class Runner:
 
     @staticmethod
     def _validate_timeout(timeout: float) -> None:
-        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or not math.isfinite(timeout)
+            or timeout <= 0
+        ):
             raise ValueError("Timeout must be a positive finite number")
 
     def run(

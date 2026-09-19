@@ -1,8 +1,8 @@
 """Explicit JSON serialization; runtime objects never become public metadata."""
 
+import math
 from dataclasses import fields, is_dataclass
 from enum import Enum
-import math
 from typing import Any
 
 

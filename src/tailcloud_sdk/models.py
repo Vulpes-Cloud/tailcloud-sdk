@@ -1,9 +1,10 @@
 """Public command metadata and results shared with the TailCloud interface."""
 
-from dataclasses import dataclass, field
 import keyword
 import re
-from typing import Any, Callable, Literal
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 from .errors import ValidationError
 

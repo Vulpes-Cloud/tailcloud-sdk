@@ -1,5 +1,4 @@
 import os
-import subprocess
 import sys
 import unittest
 from unittest.mock import patch
@@ -43,7 +42,12 @@ class RunnerTests(unittest.TestCase):
     def test_environment_overlay_preserves_parent(self):
         with patch.dict(os.environ, {"TAILCLOUD_PARENT": "preserved"}):
             result = Runner().run(
-                [sys.executable, "-c", "import os; print(os.environ['TAILCLOUD_PARENT'], os.environ['TAILCLOUD_CHILD'])"],
+                [
+                    sys.executable,
+                    "-c",
+                    "import os; print(os.environ['TAILCLOUD_PARENT'], "
+                    "os.environ['TAILCLOUD_CHILD'])",
+                ],
                 env={"TAILCLOUD_CHILD": "added"},
             )
         self.assertEqual(result.stdout.strip(), "preserved added")
@@ -79,9 +83,10 @@ class PackageTests(unittest.TestCase):
                 self.assertEqual(manager.remove("nginx").args, tuple([backend, *remove]))
 
     def test_detect_backend(self):
-        with patch("tailcloud_sdk.system.shutil.which", side_effect=lambda name: "/bin/dnf" if name == "dnf" else None):
+        which = "tailcloud_sdk.system.shutil.which"
+        with patch(which, side_effect=lambda name: "/bin/dnf" if name == "dnf" else None):
             self.assertEqual(PackageManager(Runner()).backend, "dnf")
-        with patch("tailcloud_sdk.system.shutil.which", return_value=None):
+        with patch(which, return_value=None):
             with self.assertRaises(ValueError):
                 PackageManager(Runner())
 

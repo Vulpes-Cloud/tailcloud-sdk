@@ -1,10 +1,10 @@
 import contextlib
-from enum import Enum
 import io
 import json
 import subprocess
 import sys
 import unittest
+from enum import Enum
 from unittest.mock import Mock
 
 from tailcloud_sdk import Command, Field, RegistrationError, Result, TailModel, ValidationError
@@ -158,7 +158,8 @@ class ModelTests(unittest.TestCase):
             with self.subTest(handler=handler), self.assertRaises(RegistrationError):
                 self.model.command(Command("test", "Test"))(handler)
         with self.assertRaises(RegistrationError):
-            self.model.command(Command("test", "Test", fields=[Field("extra", "Extra")]))(lambda: None)
+            command = Command("test", "Test", fields=[Field("extra", "Extra")])
+            self.model.command(command)(lambda: None)
 
     def test_compatibility_import(self):
         from tailcloudSDK.model import TailModel as LegacyModel

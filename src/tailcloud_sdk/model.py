@@ -1,13 +1,13 @@
 """Command registration, validation, dispatch, and the TailCloud CLI protocol."""
 
-from collections.abc import Callable, Mapping, Sequence
-from contextlib import redirect_stdout
-from dataclasses import replace
 import inspect
 import json
 import logging
 import sys
 import traceback
+from collections.abc import Callable, Mapping, Sequence
+from contextlib import redirect_stdout
+from dataclasses import replace
 from typing import Any, TypeVar
 
 from .errors import RegistrationError, ValidationError
@@ -42,6 +42,9 @@ class TailModel:
     def update(self, command_data: Command) -> Callable[[Handler], Handler]:
         return self._register(self._lifecycle, command_data, "update")
 
+    def uninstall(self, command_data: Command) -> Callable[[Handler], Handler]:
+        return self._register(self._lifecycle, command_data, "uninstall")
+
     def status(self, command_data: Command) -> Callable[[Handler], Handler]:
         return self._register(self._lifecycle, command_data, "status")
 
@@ -55,12 +58,19 @@ class TailModel:
         def decorator(func: Handler) -> Handler:
             if command_id in registry:
                 raise RegistrationError(f"Command '{command_id}' is already registered")
-            if not callable(func) or inspect.iscoroutinefunction(func) or inspect.iscoroutinefunction(getattr(func, "__call__", None)):
+            if (
+                not callable(func)
+                or inspect.iscoroutinefunction(func)
+                or inspect.iscoroutinefunction(type(func).__call__)
+            ):
                 raise RegistrationError("Handlers must be synchronous callables")
             try:
-                inspect.signature(func).bind(**{item.id: item.default for item in definition.fields})
+                inspect.signature(func).bind(
+                    **{item.id: item.default for item in definition.fields}
+                )
             except (TypeError, ValueError) as exc:
-                raise RegistrationError(f"Handler signature does not match '{command_id}': {exc}") from exc
+                message = f"Handler signature does not match '{command_id}': {exc}"
+                raise RegistrationError(message) from exc
             registry[command_id] = replace(definition, func=func)
             logger.debug("Registered command %s", command_id)
             return func
@@ -89,7 +99,8 @@ class TailModel:
         try:
             inspect.signature(command.func).bind(**validated)
         except TypeError as exc:
-            raise ValidationError("Missing arguments: declare field defaults or handler defaults") from exc
+            message = "Missing arguments: declare field defaults or handler defaults"
+            raise ValidationError(message) from exc
         return validated
 
     def execute(
@@ -130,7 +141,11 @@ class TailModel:
             logger.error("Handler failed: %s", command.id, exc_info=self.debug)
             return Result(
                 "Ошибка выполнения",
-                description=traceback.format_exc() if self.debug else "Не удалось выполнить операцию",
+                description=(
+                    traceback.format_exc()
+                    if self.debug
+                    else "Не удалось выполнить операцию"
+                ),
                 status="ERROR",
             )
 
@@ -164,7 +179,10 @@ class TailModel:
                 with redirect_stdout(sys.stderr):
                     result = self.execute(args[0], arguments)
             else:
-                raise ValidationError("Usage: describe | command <id> [JSON] | install/update/uninstall/status [JSON]")
+                raise ValidationError(
+                    "Usage: describe | command <id> [JSON] | "
+                    "install/update/uninstall/status [JSON]"
+                )
         except ValidationError as exc:
             result = Result("Некорректный запрос", description=str(exc), status="ERROR")
         payload = {**self.describe(), "result": serialize(result)}

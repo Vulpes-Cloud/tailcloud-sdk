@@ -39,8 +39,12 @@ class PackageManager:
         if not packages:
             raise ValueError("Specify at least one package")
         for package in packages:
-            if not isinstance(package, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9+._:-]*", package):
-                raise ValueError("Package names must be literal names, not options, paths, or patterns")
+            if not isinstance(package, str) or not re.fullmatch(
+                r"[A-Za-z0-9][A-Za-z0-9+._:-]*", package
+            ):
+                raise ValueError(
+                    "Package names must be literal names, not options, paths, or patterns"
+                )
 
     def refresh(self) -> CommandResult:
         operation = "makecache" if self.backend in ("dnf", "yum") else "update"
